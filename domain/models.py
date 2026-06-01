@@ -3,18 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from random import choice, randint, shuffle
 
-Coord = tuple[int, int]
-Direction = tuple[int, int]
-
-DIAGONALS: tuple[Direction, ...] = ((-1, -1), (1, -1), (-1, 1), (1, 1))
-
-FLEET_BLUEPRINTS: tuple[tuple[str, int, int, str], ...] = (
-    ("Verkenner", 2, 2, "Radar Scan"),
-    ("Jager", 3, 2, "Homing Missile"),
-    ("Kruiser", 3, 2, "EMP Uitschakeling"),
-    ("Slagschip", 4, 1, "Salvo Aanval"),
-    ("Commandoschip", 5, 1, "Space Smoke"),
-)
+from config.fleet_blueprints import FLEET_BLUEPRINTS
+from domain.geometry import DIAGONALS, Coord, Direction, add_pos, area, in_bounds
 
 
 @dataclass
@@ -43,25 +33,6 @@ class Ship:
 class Asteroid:
     pos: Coord
     direction: Direction
-
-
-def in_bounds(size: int, pos: Coord) -> bool:
-    x, y = pos
-    return 0 <= x < size and 0 <= y < size
-
-
-def add_pos(a: Coord, b: Direction) -> Coord:
-    return a[0] + b[0], a[1] + b[1]
-
-
-def area(center: Coord, radius: int = 1) -> list[Coord]:
-    cx, cy = center
-    return [(x, y) for y in range(cy - radius, cy + radius + 1) for x in range(cx - radius, cx + radius + 1)]
-
-
-def line(center: Coord, direction: Direction, length: int = 3) -> list[Coord]:
-    half = length // 2
-    return [(center[0] + direction[0] * step, center[1] + direction[1] * step) for step in range(-half, half + 1)]
 
 
 class Board:
@@ -95,16 +66,16 @@ class Board:
         return True
 
     def randomize_fleet(self) -> None:
-        for name, length, amount, power in FLEET_BLUEPRINTS:
-            for _ in range(amount):
+        for blueprint in FLEET_BLUEPRINTS:
+            for _ in range(blueprint.amount):
                 placed = False
                 while not placed:
                     placed = self.place_ship(
-                        name,
-                        length,
+                        blueprint.name,
+                        blueprint.length,
                         (randint(0, self.size - 1), randint(0, self.size - 1)),
                         choice((True, False)),
-                        power,
+                        blueprint.power,
                     )
 
     def place_asteroids(self, amount: int = 4) -> None:

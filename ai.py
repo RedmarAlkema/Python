@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from random import choice, random
 
-from models import Board, Coord
+from domain.geometry import Coord
+from domain.models import Board
 
 
 def all_cells(size: int) -> list[Coord]:
