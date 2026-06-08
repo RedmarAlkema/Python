@@ -18,6 +18,8 @@ def handle_key(game: Game, key: int) -> None:
         game.cheat_enabled = not game.cheat_enabled
         game.message = f"Cheatcode {'aan' if game.cheat_enabled else 'uit'}."
         game.record_action("systeem", game.message)
+    elif key == pygame.K_o:
+        _toggle_salvo_axis(game)
     elif key == pygame.K_r:
         game.__init__(game.size, game.nickname)
     elif game.selected_ship and not game.game_over:
@@ -71,12 +73,25 @@ def _handle_board_click(game: Game, event: pygame.event.Event) -> None:
     if event.button != 1 or not hit:
         return
     is_enemy, cell = hit
-    if not is_enemy:
+    if not is_enemy and _selected_power_targets_own_board(game):
+        game.use_power(cell, own_board=True)
+    elif not is_enemy:
         game.select_ship(cell, own_board=True)
     elif game.selected_ship:
         game.use_power(cell, own_board=False)
     else:
         game.use_attack(cell)
+
+
+def _selected_power_targets_own_board(game: Game) -> bool:
+    return game.selected_ship is not None and game.selected_ship.power == "Space Smoke" and not game.selected_ship.power_used
+
+
+def _toggle_salvo_axis(game: Game) -> None:
+    game.salvo_axis = (0, 1) if game.salvo_axis == (1, 0) else (1, 0)
+    direction = "verticaal" if game.salvo_axis == (0, 1) else "horizontaal"
+    game.message = f"Salvo-richting staat nu {direction}."
+    game.record_action("systeem", game.message)
 
 
 def _move_selected_ship(game: Game, key: int) -> None:

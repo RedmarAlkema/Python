@@ -90,7 +90,8 @@ def draw_game_screen(surface: pygame.Surface, game: Game, font: pygame.font.Font
 def _draw_game_header(surface: pygame.Surface, game: Game, font: pygame.font.Font, small: pygame.font.Font) -> None:
     draw_panel(surface, pygame.Rect(14, 14, surface.get_width() - 28, 126))
     draw_text(surface, pygame.font.SysFont("arial", 32), "Cosmic Confrontation", (GameSettings.LEFT, 24), Colors.TEXT)
-    draw_text(surface, small, "Klik eigen schip = selecteren | Pijltjes = bewegen | Klik bordvak = power/aanval | Esc = deselect | C cheat | R herstart", (GameSettings.LEFT, 70), Colors.MUTED)
+    draw_text(surface, small, "Klik eigen schip = selecteren | Pijltjes = bewegen | Klik bordvak = power/aanval | O salvo-richting | Esc = deselect | C cheat | R herstart", (GameSettings.LEFT, 70), Colors.MUTED)
+    draw_text(surface, small, f"Salvo-richting: {_salvo_direction_text(game)}", (surface.get_width() - 360, 106), Colors.YELLOW)
     draw_main_menu_button(surface, small)
     draw_text(surface, font, _mode_text(game), (GameSettings.LEFT, 104), Colors.BLUE)
 
@@ -176,6 +177,10 @@ def _mode_text(game: Game) -> str:
     else:
         text = "Geen schip geselecteerd. Klik op vijandelijk bord om standaard aan te vallen."
     return f"{text}     Cheat: aan" if game.cheat_enabled else text
+
+
+def _salvo_direction_text(game: Game) -> str:
+    return "verticaal" if game.salvo_axis == (0, 1) else "horizontaal"
 
 
 def _draw_marker(surface: pygame.Surface, pos: Coord, color: tuple[int, int, int], label: str, font: pygame.font.Font) -> None:
