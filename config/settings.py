@@ -6,8 +6,8 @@ class GameSettings:
     GAP = 56
     TOP = 188
     LEFT = 28
-    PANEL = 300
-    START_SIZE = 10
+    PANEL = 560
+    START_SIZE = 8
     MIN_SIZE = 8
     MAX_SIZE = 16
     START_WINDOW = (1280, 760)

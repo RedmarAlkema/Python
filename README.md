@@ -1,18 +1,26 @@
 # Cosmic Confrontation
 
-PyGame-uitwerking van de Python-eindopdracht.
+Pygame-uitwerking van de Python-eindopdracht: een Battleship-achtig ruimtespel met
+schepen, speciale krachten, asteroiden, AI, opgeslagen spellen en statistieken.
 
 ## Starten
 
-Sluit na het aanpassen/installeren van Python eerst PowerShell en VS Code volledig af
-en open daarna een nieuwe terminal. Controleer dan of `python` naar Python 3.12 wijst:
+De applicatie gebruikt SQLite. Je hoeft dus geen XAMPP, MySQL/MariaDB of
+phpMyAdmin te starten.
+
+Maak het lokale databasebestand en de tabellen aan met:
 
 ```powershell
-python --version
+python setup_database.py
 ```
 
-Voor dit project moet dit bij voorkeur `Python 3.12.x` tonen. Installeer daarna
-PyGame:
+Wil je de database leeg opnieuw aanmaken:
+
+```powershell
+python setup_database.py --fresh
+```
+
+Installeer daarna de dependencies:
 
 ```powershell
 python -m pip install -r requirements.txt
@@ -24,68 +32,77 @@ Start het spel:
 python main.py
 ```
 
-## Problemen met Python
+## Startmenu
 
-Als `python --version` Python 3.14 toont, staat de verkeerde Python-versie vooraan
-in PATH. Gebruik dan tijdelijk expliciet je Python 3.12-pad:
+- Typ je nickname.
+- `F` of de knop rechtsboven: wissel fullscreen/venster.
+- Pijltjes links/rechts: kies bordgrootte tussen 8x8 en 16x16. De standaard is 8x8.
+- `N`: start een nieuw spel en plaats daarna handmatig je vloot.
+- Pijltjes omhoog/omlaag: selecteer een opgeslagen spel.
+- Enter of spatie: speel verder met het gekozen spel.
+- `V`: bekijk de laatste opgeslagen staat van beide borden zonder meteen verder te spelen.
+- `S`: wissel tussen opgeslagen spellen en statistieken.
 
-```powershell
-& "$env:LOCALAPPDATA\Python\pythoncore-3.12-64\python.exe" --version
-```
+## Vloot Plaatsen
 
-Daarmee kun je ook installeren en starten:
+- Klik op het eigen bord om het volgende schip te plaatsen.
+- `R`: draai het schip horizontaal/verticaal.
+- Backspace: haal het laatst geplaatste schip terug.
+- Na het laatste schip worden asteroiden geplaatst en start het spel.
 
-```powershell
-& "$env:LOCALAPPDATA\Python\pythoncore-3.12-64\python.exe" -m pip install -r requirements.txt
-& "$env:LOCALAPPDATA\Python\pythoncore-3.12-64\python.exe" main.py
-```
+## Besturing Tijdens Het Spel
 
-Als `pip` ontbreekt:
-
-```powershell
-python -m ensurepip --upgrade
-python -m pip install -r requirements.txt
-```
-
-Als `python` helemaal niet werkt, probeer dan de Python launcher:
-
-```powershell
-py -V
-py list
-```
-
-Zie je alleen uitleg van de Python Install Manager en nog geen versie? Installeer dan
-een runtime met:
-
-```powershell
-py install 3.12
-```
-
-Als je meerdere Python-versies hebt, kun je ook expliciet Python 3.12 gebruiken:
-
-```powershell
-py -3.12 -m pip install -r requirements.txt
-py -3.12 main.py
-```
-
-## Besturing
-
-- Pijltjes links/rechts in het startscherm: kies bordgrootte tussen 8x8 en 16x16.
-- Enter of spatie: start het spel.
 - Linkermuisknop op eigen bord: selecteer een schip.
 - `A`: aanvalmodus, klik op het vijandelijke bord.
 - `P`: speciale kracht, selecteer eerst een eigen schip en klik daarna op het juiste bord.
 - `M`: bewegingsmodus, selecteer een eigen schip en gebruik de pijltjestoetsen.
 - `O`: wissel de richting van de salvo-aanval.
+- `C`: cheatcode aan/uit, toont het vijandelijke bord inclusief asteroidenrichting.
 - `R`: herstart met dezelfde bordgrootte.
+- `F` of `F11`: wissel fullscreen/venster.
+
+Als het spel voorbij is, worden beide volledige opstellingen automatisch zichtbaar.
+
+## Opslag En Statistieken
+
+Spellen worden standaard opgeslagen in een lokale SQLite database:
+`saves/cosmic_confrontation.sqlite3`. De database-instellingen staan in
+`storage/config.py`; een database-server of `.env` is niet nodig.
+
+Het statistiekenscherm toont per opgeslagen spel onder andere bordgrootte, aantal
+beurten, geraakte vakjes en winnaar. De data staat in meerdere tabellen:
+
+- `games`: basisgegevens per spel.
+- `game_states`: volledige laatste spelstaat om verder te spelen.
+- `game_actions`: losse actielog per beurt.
+- `game_statistics`: hit/miss ratio, schepen over, gebruikte powerups, bewogen
+  vakken en asteroideschade.
+- `game_ships`: losse scheepsstatus per speler.
+- `game_asteroids`: losse asteroideposities en richtingen.
 
 ## Opbouw
 
-- `models.py`: kleine modelklassen voor bord, vloot, schepen, zichtbaarheid en asteroiden.
-- `ai.py`: eenvoudige AI-keuzes.
-- `main.py`: PyGame-scherm, input en beurtverloop.
+- `main.py`: startpunt.
+- `presentation/ui.py`: Pygame-schermen, menu, plaatsingsscherm en rendering.
+- `game.py`: spelstatus en beurtverloop.
+- `storage/`: databaseconfiguratie, schema, opslag en statistiekberekening.
+- `ai.py`: eenvoudige AI-beurt.
+- `domain/board.py`: bordregels, schepen, aanvallen en asteroiden.
+- `domain/ships/`: scheepstypes en speciale krachten.
+- `domain/decorators.py`: eigen `audit_action` decorator voor actie-auditing.
 
-De classes zijn bewust compact gehouden. `Board` koppelt de onderdelen aan elkaar,
-terwijl `Fleet`, `Visibility`, `AsteroidField`, `Ship` en `Asteroid` elk een eigen
-verantwoordelijkheid hebben. Regels zoals aanvallen, scannen, bewegen, gebieden
-bepalen en meerdere vakjes raken zijn als herbruikbare methodes/functies opgezet.
+## Technische Eisen
+
+- Objectgeorienteerd: `GameBoard`, `Ship` en subklassen, `Asteroid`, `Player`,
+  `AIPlayer` en `Move` zitten in aparte domeinmodules.
+- `Ship` is een abstracte basisklasse voor de vijf scheepstypes.
+- Dunder methods: naast initialisatie gebruikt `Ship` onder andere `__len__` en
+  `__contains__`; `Player` gebruikt `__getattr__` om bordacties door te geven.
+- Properties: `Ship.sunk`, `Ship.orientation` en `Game.selected_ship` schermen
+  status en selectie af.
+- List comprehensions staan onder andere in bordgeneratie, scans, vlootstatus en
+  AI-keuzes.
+- De eigen decorator `audit_action` wordt gebruikt op spel- en bordacties.
+- `Move` valideert acties en maakt logregels voor aanval, beweging en speciale
+  kracht.
+- Opslag gebeurt in SQLite; iedere save bevat ook een statistiek-snapshot.
